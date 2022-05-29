@@ -15,15 +15,11 @@ az group create \
     --name "$RG_NAME" \
     --location "centralus" || exit 1
 
-RD_ID=$( az group show --name test --query "id" --output tsv || exit 1)
-
 echo "----| Create cosmos account: $DB_ACCOUNT_NAME"
 az cosmosdb create \
     --name "$DB_ACCOUNT_NAME" \
     --resource-group "$RG_NAME" \
     --locations "regionName=westus" || exit 1
-
-DB_ID=$( az cosmosdb show --name test2db --resource-group test --query id --output tsv || exit 1)
 
 echo "----| Create account in database: $DB_ACCOUNT_NAME"
 az cosmosdb sql database create \
@@ -45,12 +41,12 @@ az cosmosdb sql role definition create \
     --resource-group "$RG_NAME" \
     --body @"$SCRIPT_DIR/CLIRole.json" || exit 1
 
-CLIRoleId=$( az cosmosdb sql role definition list --account-name "$DB_ACCOUNT_NAME" --resource-group "$RG_NAME" --query "[?roleName=='CLIRole']".name --output tsv )
+CLI_ROLE_ID=$( az cosmosdb sql role definition list --account-name "$DB_ACCOUNT_NAME" --resource-group "$RG_NAME" --query "[?roleName=='CLIRole']".name --output tsv )
 
-echo "----| Assign role \"CLIRole\" ($CLIRoleId) to $USER_OBJECT_ID"
+echo "----| Assign role \"CLIRole\" ($CLI_ROLE_ID) to $USER_OBJECT_ID"
 az cosmosdb sql role assignment create \
     --account-name "$DB_ACCOUNT_NAME" \
     --resource-group "$RG_NAME" \
     --scope "/" \
     --principal-id "$USER_OBJECT_ID" \
-    --role-definition-id "$CLIRoleId"
+    --role-definition-id "$CLI_ROLE_ID"
